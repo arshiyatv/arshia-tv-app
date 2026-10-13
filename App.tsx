@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Theme } from './theme/AppTheme';
+import { Theme } from './src/utils/AppTheme';
 
 import HomePage from './screens/HomePage';
 import LiveChannelsPage from './screens/LiveChannelsPage';
