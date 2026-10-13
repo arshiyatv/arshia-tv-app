@@ -145,5 +145,5 @@ export async function loadChannels(force: boolean = false): Promise<ChannelResul
   } catch (error) {
     return { channels: SAMPLE_CHANNELS, isOffline: true };
   }
-  }
-  
+      }
+        
