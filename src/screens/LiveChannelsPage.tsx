@@ -23,7 +23,7 @@ import { Channel, GROUPS, GroupMeta, groupMeta } from '../data/channels';
 import { MOVIES, Movie } from '../data/movies';
 import { genreLabel, groupLabel, movieTitle } from '../data/labels';
 import { loadChannels } from '../utils/playlist';
-import { useAdmin } from '../context/AdminContext';
+import { useAdmin } from '../contexts/AdminContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useTranslation } from '../locales';
 
