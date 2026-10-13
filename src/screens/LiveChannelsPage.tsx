@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { AppTheme } from '../theme/AppTheme';
+import { AppTheme } from '../utils/AppTheme';
 import ArshiaWatermark from '../components/ArshiaWatermark';
 import ChannelLogo from '../components/ChannelLogo';
 import InsetPressable from '../components/InsetPressable';
