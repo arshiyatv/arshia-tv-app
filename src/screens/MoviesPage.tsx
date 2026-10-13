@@ -16,10 +16,56 @@ import { AppTheme } from '../theme/AppTheme';
 import PressableScale from '../components/PressableScale';
 import ArshiaWatermark from '../components/ArshiaWatermark';
 import { GENRES, LANGUAGES, MOVIES, Movie, YEARS } from '../data/movies';
+import { genreLabel, languageLabel, movieTitle, synopsis } from '../data/labels';
+import { useFavorites } from '../context/FavoritesContext';
+import { useTranslation } from '../locales';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const GRID_GAP = 14;
 const CARD_WIDTH = (SCREEN_WIDTH - AppTheme.spacing.lg * 2 - GRID_GAP) / 2;
+
+const COPY = {
+  en: {
+    title: 'Movies',
+    titles: 'titles',
+    filter: 'filter',
+    filters: 'filters',
+    genre: 'Genre',
+    year: 'Year',
+    language: 'Language',
+    all: 'All',
+    nothing: 'Nothing matches those filters',
+    tryAnother: 'Try a different genre, year or language.',
+    clear: 'Clear filters',
+    play: 'Play on Arshia TV',
+    close: 'Close',
+    save: 'Add to My Favorites',
+    saved: 'In My Favorites',
+    min: 'min',
+    noSource:
+      'This title is in the Arshia catalogue, so no source is attached to it yet. Attach an M3U8 address to the film and it plays here.',
+  },
+  fa: {
+    title: 'فیلم‌ها',
+    titles: 'عنوان',
+    filter: 'فیلتر',
+    filters: 'فیلتر',
+    genre: 'ژانر',
+    year: 'سال',
+    language: 'زبان',
+    all: 'همه',
+    nothing: 'چیزی با این فیلترها پیدا نشد',
+    tryAnother: 'ژانر، سال یا زبان دیگری را امتحان کنید.',
+    clear: 'پاک‌کردن فیلترها',
+    play: 'پخش در آرشیا تی‌وی',
+    close: 'بستن',
+    save: 'افزودن به علاقه‌مندی‌ها',
+    saved: 'در علاقه‌مندی‌ها',
+    min: 'دقیقه',
+    noSource:
+      'این عنوان در فهرست آرشیا است و هنوز منبعی به آن وصل نشده. کافی است نشانی M3U8 به فیلم اضافه شود تا همین‌جا پخش شود.',
+  },
+};
 
 interface FilterChipProps {
   label: string;
@@ -41,7 +87,7 @@ const FilterChip: React.FC<FilterChipProps> = ({ label, active, onPress }) => (
 interface FilterRowProps {
   icon: string;
   label: string;
-  options: string[];
+  options: { value: string; label: string }[];
   value: string;
   onChange: (next: string) => void;
 }
@@ -60,10 +106,10 @@ const FilterRow: React.FC<FilterRowProps> = ({ icon, label, options, value, onCh
     >
       {options.map((option) => (
         <FilterChip
-          key={option}
-          label={option}
-          active={value === option}
-          onPress={() => onChange(option)}
+          key={option.value}
+          label={option.label}
+          active={value === option.value}
+          onPress={() => onChange(option.value)}
         />
       ))}
     </ScrollView>
@@ -77,6 +123,8 @@ interface MovieGridCardProps {
 }
 
 const MovieGridCard: React.FC<MovieGridCardProps> = ({ movie, index, onPress }) => {
+  const { lang } = useTranslation();
+  const copy = COPY[lang];
   const enter = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -115,16 +163,20 @@ const MovieGridCard: React.FC<MovieGridCardProps> = ({ movie, index, onPress }) 
             <Text style={styles.cardRatingText}>{movie.rating.toFixed(1)}</Text>
           </View>
           <View style={styles.cardDuration}>
-            <Text style={styles.cardDurationText}>{movie.duration} min</Text>
+            <Text style={styles.cardDurationText}>
+              {movie.duration} {copy.min}
+            </Text>
           </View>
         </View>
         <View style={styles.cardBody}>
           <Text style={styles.cardTitle} numberOfLines={1}>
-            {movie.title}
+            {movieTitle(movie.id, movie.title, lang)}
           </Text>
           <View style={styles.cardTags}>
             <View style={[styles.cardTag, { borderColor: movie.color + '66' }]}>
-              <Text style={[styles.cardTagText, { color: movie.color }]}>{movie.genre}</Text>
+              <Text style={[styles.cardTagText, { color: movie.color }]}>
+                {genreLabel(movie.genre, lang)}
+              </Text>
             </View>
             <Text style={styles.cardYear}>{movie.year}</Text>
           </View>
@@ -135,7 +187,11 @@ const MovieGridCard: React.FC<MovieGridCardProps> = ({ movie, index, onPress }) 
 };
 
 const MoviesPage: React.FC<any> = ({ navigation }) => {
+  const { lang } = useTranslation();
+  const copy = COPY[lang];
   const insets = useSafeAreaInsets();
+  const { isFavorite, toggleFavorite } = useFavorites();
+
   const [filterOpen, setFilterOpen] = useState(true);
   const [genre, setGenre] = useState('All');
   const [year, setYear] = useState('All');
@@ -154,9 +210,24 @@ const MoviesPage: React.FC<any> = ({ navigation }) => {
     }).start();
   }, [enter]);
 
-  const genreOptions = useMemo(() => ['All'].concat(GENRES), []);
-  const yearOptions = useMemo(() => ['All'].concat(YEARS.map((item) => String(item))), []);
-  const languageOptions = useMemo(() => ['All'].concat(LANGUAGES), []);
+  const genreOptions = useMemo(
+    () => [{ value: 'All', label: copy.all }].concat(
+      GENRES.map((item) => ({ value: item, label: genreLabel(item, lang) }))
+    ),
+    [copy.all, lang]
+  );
+  const yearOptions = useMemo(
+    () => [{ value: 'All', label: copy.all }].concat(
+      YEARS.map((item) => ({ value: String(item), label: String(item) }))
+    ),
+    [copy.all]
+  );
+  const languageOptions = useMemo(
+    () => [{ value: 'All', label: copy.all }].concat(
+      LANGUAGES.map((item) => ({ value: item, label: languageLabel(item, lang) }))
+    ),
+    [copy.all, lang]
+  );
 
   const filtered = useMemo(
     () =>
@@ -212,12 +283,12 @@ const MoviesPage: React.FC<any> = ({ navigation }) => {
   const playMovie = (movie: Movie) => {
     closeDetail();
     navigation.navigate('Player', {
-      title: movie.title,
-      subtitle: `${movie.genre} · ${movie.year} · ${movie.duration} min`,
+      title: movieTitle(movie.id, movie.title, lang),
+      subtitle: `${genreLabel(movie.genre, lang)} · ${movie.year} · ${movie.duration} ${copy.min}`,
       url: movie.streamUrl,
       accent: movie.color,
       isLive: false,
-      hint: 'This title belongs to the demo catalogue, so no source is attached to it yet. Add an M3U8 address to the film in the catalogue and it plays here.',
+      hint: copy.noSource,
     });
   };
 
@@ -225,16 +296,18 @@ const MoviesPage: React.FC<any> = ({ navigation }) => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Movies</Text>
+          <Text style={styles.title}>{copy.title}</Text>
           <Text style={styles.subtitle}>
-            {filtered.length} titles
-            {activeFilters > 0 ? ` · ${activeFilters} filter${activeFilters > 1 ? 's' : ''}` : ''}
+            {filtered.length} {copy.titles}
+            {activeFilters > 0
+              ? ` · ${activeFilters} ${activeFilters > 1 ? copy.filters : copy.filter}`
+              : ''}
           </Text>
         </View>
         <PressableScale
           onPress={() => setFilterOpen((prev) => !prev)}
           style={[styles.headerButton, activeFilters > 0 ? styles.headerButtonActive : null]}
-          accessibilityLabel={filterOpen ? 'Collapse filters' : 'Expand filters'}
+          accessibilityLabel={copy.filters}
         >
           <Ionicons
             name="options-outline"
@@ -264,21 +337,21 @@ const MoviesPage: React.FC<any> = ({ navigation }) => {
         >
           <FilterRow
             icon="pricetag-outline"
-            label="Genre"
+            label={copy.genre}
             options={genreOptions}
             value={genre}
             onChange={setGenre}
           />
           <FilterRow
             icon="calendar-outline"
-            label="Year"
+            label={copy.year}
             options={yearOptions}
             value={year}
             onChange={setYear}
           />
           <FilterRow
             icon="globe-outline"
-            label="Language"
+            label={copy.language}
             options={languageOptions}
             value={language}
             onChange={setLanguage}
@@ -296,13 +369,11 @@ const MoviesPage: React.FC<any> = ({ navigation }) => {
         ListEmptyComponent={
           <View style={styles.stateBox}>
             <Ionicons name="film-outline" size={46} color={AppTheme.colors.textMuted} />
-            <Text style={styles.stateTitle}>Nothing matches those filters</Text>
-            <Text style={styles.stateText}>
-              Try a different genre, year or language.
-            </Text>
+            <Text style={styles.stateTitle}>{copy.nothing}</Text>
+            <Text style={styles.stateText}>{copy.tryAnother}</Text>
             <PressableScale onPress={clearFilters} style={styles.clearButton}>
               <Ionicons name="refresh" size={15} color={AppTheme.colors.white} />
-              <Text style={styles.clearButtonText}>Clear filters</Text>
+              <Text style={styles.clearButtonText}>{copy.clear}</Text>
             </PressableScale>
           </View>
         }
@@ -332,10 +403,11 @@ const MoviesPage: React.FC<any> = ({ navigation }) => {
               </View>
               <View style={styles.sheetHeadText}>
                 <Text style={styles.sheetTitle} numberOfLines={2}>
-                  {selected.title}
+                  {movieTitle(selected.id, selected.title, lang)}
                 </Text>
                 <Text style={styles.sheetMeta}>
-                  {selected.year} · {selected.duration} min · {selected.language}
+                  {selected.year} · {selected.duration} {copy.min} ·{' '}
+                  {languageLabel(selected.language, lang)}
                 </Text>
               </View>
               <ArshiaWatermark size={10} />
@@ -343,7 +415,7 @@ const MoviesPage: React.FC<any> = ({ navigation }) => {
 
             <View style={styles.sheetChips}>
               <View style={[styles.chip, styles.chipActive]}>
-                <Text style={styles.chipTextActive}>{selected.genre}</Text>
+                <Text style={styles.chipTextActive}>{genreLabel(selected.genre, lang)}</Text>
               </View>
               <View style={styles.chip}>
                 <Ionicons name="star" size={11} color={AppTheme.colors.accent} />
@@ -351,19 +423,45 @@ const MoviesPage: React.FC<any> = ({ navigation }) => {
               </View>
             </View>
 
-            <Text style={styles.sheetSynopsis}>{selected.synopsis}</Text>
+            <Text style={styles.sheetSynopsis}>
+              {synopsis(selected.id, selected.synopsis, lang)}
+            </Text>
+
+            <PressableScale
+              onPress={() =>
+                toggleFavorite({
+                  id: selected.id,
+                  kind: 'movie',
+                  title: movieTitle(selected.id, selected.title, lang),
+                  subtitle: `${genreLabel(selected.genre, lang)} · ${selected.year}`,
+                  color: selected.color,
+                  icon: selected.icon,
+                })
+              }
+              style={styles.saveButton}
+              accessibilityLabel={copy.save}
+            >
+              <Ionicons
+                name={isFavorite(selected.id) ? 'heart' : 'heart-outline'}
+                size={16}
+                color={AppTheme.colors.white}
+              />
+              <Text style={styles.saveButtonText}>
+                {isFavorite(selected.id) ? copy.saved : copy.save}
+              </Text>
+            </PressableScale>
 
             <PressableScale
               onPress={() => playMovie(selected)}
               style={styles.playButton}
-              accessibilityLabel={`Play ${selected.title}`}
+              accessibilityLabel={copy.play}
             >
               <Ionicons name="play" size={18} color={AppTheme.colors.white} />
-              <Text style={styles.playButtonText}>Play on Arshia TV</Text>
+              <Text style={styles.playButtonText}>{copy.play}</Text>
             </PressableScale>
 
             <PressableScale onPress={closeDetail} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>Close</Text>
+              <Text style={styles.closeButtonText}>{copy.close}</Text>
             </PressableScale>
           </Animated.View>
         </View>
@@ -663,8 +761,48 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     marginTop: AppTheme.spacing.md,
   },
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 44,
+    borderRadius: AppTheme.borderRadius.md,
+    backgroundColor: AppTheme.colors.secondary,
+    marginTop: AppTheme.spacing.lg,
+  },
+  saveButtonText: {
+    color: AppTheme.colors.white,
+    fontSize: AppTheme.typography.fontSize.sm,
+    fontWeight: AppTheme.typography.fontWeight.semibold,
+    marginLeft: 6,
+  },
   playButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    hei
+    height: 48,
+    borderRadius: AppTheme.borderRadius.md,
+    backgroundColor: AppTheme.colors.primary,
+    marginTop: AppTheme.spacing.sm,
+    ...AppTheme.elevation.md,
+  },
+  playButtonText: {
+    color: AppTheme.colors.white,
+    fontSize: AppTheme.typography.fontSize.md,
+    fontWeight: AppTheme.typography.fontWeight.bold,
+    marginLeft: AppTheme.spacing.sm,
+  },
+  closeButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 44,
+    marginTop: AppTheme.spacing.xs,
+  },
+  closeButtonText: {
+    color: AppTheme.colors.textMuted,
+    fontSize: AppTheme.typography.fontSize.md,
+    fontWeight: AppTheme.typography.fontWeight.medium,
+  },
+});
+
+export default MoviesPage;
