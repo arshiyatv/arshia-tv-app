@@ -653,4 +653,4 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: AppTheme.spacing.lg,
-    paddingVertical: AppTheme.sp
+    paddingVertical: AppTheme.sp,
