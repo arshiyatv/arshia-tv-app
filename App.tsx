@@ -7,24 +7,24 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from './src/utils/AppTheme';
 
-import HomePage from './screens/HomePage';
-import LiveChannelsPage from './screens/LiveChannelsPage';
-import MoviesPage from './screens/MoviesPage';
-import MorePage from './screens/MorePage';
-import PlayerPage from './screens/PlayerPage';
+import HomePage from './src/screens/HomePage';
+import LiveChannelsPage from './src/screens/LiveChannelsPage';
+import MoviesPage from './src/screens/MoviesPage';
+import MorePage from './src/screens/MorePage';
+import PlayerPage from './src/screens/PlayerPage';
 
-import IranianSatellitePage from './screens/IranianSatellitePage';
-import SearchPage from './screens/SearchPage';
-import SeriesPage from './screens/SeriesPage';
-import FavoritesPage from './screens/FavoritesPage';
-import SubscriptionPage from './screens/SubscriptionPage';
-import InstallPage from './screens/InstallPage';
-import PrivacyPage from './screens/PrivacyPage';
-import AdminPage from './screens/AdminPage';
+import IranianSatellitePage from './src/screens/IranianSatellitePage';
+import SearchPage from './src/screens/SearchPage';
+import SeriesPage from './src/screens/SeriesPage';
+import FavoritesPage from './src/screens/FavoritesPage';
+import SubscriptionPage from './src/screens/SubscriptionPage';
+import InstallPage from './src/screens/InstallPage';
+import PrivacyPage from './src/screens/PrivacyPage';
+import AdminPage from './src/screens/AdminPage';
 
-import { AdminProvider } from './context/AdminContext';
-import { FavoritesProvider } from './context/FavoritesContext';
-import { LanguageProvider, useTranslation } from './locales';
+import { AdminProvider } from './src/contexts/AdminContext';
+import { FavoritesProvider } from './src/contexts/FavoritesContext';
+import { LanguageProvider, useTranslation } from './src/locales';
 
 const Tab = createBottomTabNavigator();
 const RootStack = createNativeStackNavigator();
@@ -135,4 +135,3 @@ export default function App() {
     </SafeAreaProvider>
   );
     }
-        
