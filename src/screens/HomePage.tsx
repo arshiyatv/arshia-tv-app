@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { AppTheme } from '../theme/AppTheme';
+import { AppTheme } from '../utils/AppTheme';
 import ArshiaWatermark from '../components/ArshiaWatermark';
 import ChannelLogo from '../components/ChannelLogo';
 import PressableScale from '../components/PressableScale';
