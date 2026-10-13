@@ -18,9 +18,13 @@ import SearchPage from './screens/SearchPage';
 import SeriesPage from './screens/SeriesPage';
 import FavoritesPage from './screens/FavoritesPage';
 import SubscriptionPage from './screens/SubscriptionPage';
+import InstallPage from './screens/InstallPage';
+import PrivacyPage from './screens/PrivacyPage';
 import AdminPage from './screens/AdminPage';
 
 import { AdminProvider } from './context/AdminContext';
+import { FavoritesProvider } from './context/FavoritesContext';
+import { LanguageProvider, useTranslation } from './locales';
 
 const Tab = createBottomTabNavigator();
 const RootStack = createNativeStackNavigator();
@@ -47,6 +51,11 @@ const TAB_ICONS: Record<string, { active: string; inactive: string }> = {
   More: { active: 'grid', inactive: 'grid-outline' },
 };
 
+const TAB_LABELS = {
+  en: { Home: 'Home', Live: 'Live TV', Movies: 'Movies', More: 'More' },
+  fa: { Home: 'خانه', Live: 'تلویزیون زنده', Movies: 'فیلم‌ها', More: 'بیشتر' },
+};
+
 function MoreNavigator() {
   return (
     <MoreStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
@@ -56,12 +65,17 @@ function MoreNavigator() {
       <MoreStack.Screen name="Series" component={SeriesPage} />
       <MoreStack.Screen name="Favorites" component={FavoritesPage} />
       <MoreStack.Screen name="Subscription" component={SubscriptionPage} />
+      <MoreStack.Screen name="InstallApp" component={InstallPage} />
+      <MoreStack.Screen name="Privacy" component={PrivacyPage} />
       <MoreStack.Screen name="Admin" component={AdminPage} />
     </MoreStack.Navigator>
   );
 }
 
 function Tabs() {
+  const { lang } = useTranslation();
+  const labels = TAB_LABELS[lang];
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -90,10 +104,10 @@ function Tabs() {
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomePage} />
-      <Tab.Screen name="Live" component={LiveChannelsPage} options={{ title: 'Live TV' }} />
-      <Tab.Screen name="Movies" component={MoviesPage} />
-      <Tab.Screen name="More" component={MoreNavigator} />
+      <Tab.Screen name="Home" component={HomePage} options={{ title: labels.Home }} />
+      <Tab.Screen name="Live" component={LiveChannelsPage} options={{ title: labels.Live }} />
+      <Tab.Screen name="Movies" component={MoviesPage} options={{ title: labels.Movies }} />
+      <Tab.Screen name="More" component={MoreNavigator} options={{ title: labels.More }} />
     </Tab.Navigator>
   );
 }
@@ -102,19 +116,23 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle="light-content" />
-      <AdminProvider>
-        <NavigationContainer theme={navigationTheme}>
-          <RootStack.Navigator screenOptions={{ headerShown: false }}>
-            <RootStack.Screen name="Tabs" component={Tabs} />
-            <RootStack.Screen
-              name="Player"
-              component={PlayerPage}
-              options={{ animation: 'slide_from_bottom', presentation: 'fullScreenModal' }}
-            />
-          </RootStack.Navigator>
-        </NavigationContainer>
-      </AdminProvider>
+      <LanguageProvider>
+        <AdminProvider>
+          <FavoritesProvider>
+            <NavigationContainer theme={navigationTheme}>
+              <RootStack.Navigator screenOptions={{ headerShown: false }}>
+                <RootStack.Screen name="Tabs" component={Tabs} />
+                <RootStack.Screen
+                  name="Player"
+                  component={PlayerPage}
+                  options={{ animation: 'slide_from_bottom', presentation: 'fullScreenModal' }}
+                />
+              </RootStack.Navigator>
+            </NavigationContainer>
+          </FavoritesProvider>
+        </AdminProvider>
+      </LanguageProvider>
     </SafeAreaProvider>
   );
-  }
-    
+    }
+        
