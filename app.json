@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Arshia TV",
-    "slug": "arshia-tv-99udhdaza1zkuknytav9z",
+    "slug": "arshia-tv",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -35,7 +35,7 @@
     "plugins": [],
     "extra": {
       "eas": {
-        "projectId": "99udhdaza1zkuknytav9z"
+        "projectId": "765f7504-701e-4cd2-8188-393ca80206ff"
       }
     }
   }
