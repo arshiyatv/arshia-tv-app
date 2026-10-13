@@ -17,10 +17,71 @@ import ChannelLogo from '../components/ChannelLogo';
 import PressableScale from '../components/PressableScale';
 import { Channel, GroupMeta, groupMeta } from '../data/channels';
 import { MOVIES, Movie } from '../data/movies';
+import { genreLabel, groupLabel, movieTitle } from '../data/labels';
 import { loadChannels } from '../utils/playlist';
+import { useTranslation } from '../locales';
 
 const HERO_LIVE_COUNT = 14;
 const HERO_MOVIE_COUNT = 10;
+
+const COPY = {
+  en: {
+    brandTag: 'FREE LIVE TV · MOVIES',
+    search: 'Search',
+    onAirNow: 'ON AIR NOW',
+    featuredFilm: 'FEATURED FILM',
+    liveRightNow: 'live right now',
+    rating: 'rating',
+    watchNow: 'Watch now',
+    offline:
+      'The live playlist could not be reached, so the built-in channel list is shown. Pull down to try again.',
+    liveNow: 'Live now',
+    freeChannels: 'free channels',
+    movies: 'Movies',
+    popular: 'Popular on Arshia TV',
+    browse: 'Browse by category',
+    shelves: 'Collapsible channel shelves',
+    loading: 'Loading live channels…',
+    footer:
+      'Arshia TV indexes free-to-air Iranian and international channels. Every broadcast and film carries the Arshia TV mark.',
+    channelHintNoUrl:
+      'This entry comes from the built-in channel list, so no stream address is attached to it. Open Live TV and pull down to load the live playlist.',
+    channelHintFailed:
+      'The stream did not respond. Channels come and go during the day, so try another one from Live TV.',
+    movieHint:
+      'This title is in the Arshia catalogue, so no source is attached to it yet. Attach an M3U8 address to the film and it plays here.',
+    live: 'Live',
+    min: 'min',
+  },
+  fa: {
+    brandTag: 'تلویزیون زنده و فیلم، رایگان',
+    search: 'جست‌وجو',
+    onAirNow: 'همین حالا روی آنتن',
+    featuredFilm: 'فیلم برگزیده',
+    liveRightNow: 'در حال پخش زنده',
+    rating: 'امتیاز',
+    watchNow: 'تماشا کنید',
+    offline:
+      'فهرست پخش زنده در دسترس نبود، پس فهرست داخلی برنامه نمایش داده می‌شود. برای تلاش دوباره صفحه را پایین بکشید.',
+    liveNow: 'همین حالا زنده',
+    freeChannels: 'شبکه‌ی رایگان',
+    movies: 'فیلم‌ها',
+    popular: 'محبوب در آرشیا تی‌وی',
+    browse: 'مرور بر اساس دسته',
+    shelves: 'قفسه‌های شبکه، باز و بسته‌شدنی',
+    loading: 'در حال بارگذاری شبکه‌های زنده…',
+    footer:
+      'آرشیا تی‌وی شبکه‌های رایگان ایرانی و خارجی را فهرست می‌کند. هر پخش و هر فیلم نشان آرشیا تی‌وی را همراه دارد.',
+    channelHintNoUrl:
+      'این مورد از فهرست داخلی شبکه‌ها می‌آید و نشانی پخشی به آن وصل نیست. تلویزیون زنده را باز کنید و برای بارگذاری فهرست، صفحه را پایین بکشید.',
+    channelHintFailed:
+      'پخش پاسخ نداد. شبکه‌ها در طول روز خاموش و روشن می‌شوند، پس یکی دیگر را از تلویزیون زنده امتحان کنید.',
+    movieHint:
+      'این عنوان در فهرست آرشیا است و هنوز منبعی به آن وصل نشده. کافی است نشانی M3U8 به فیلم اضافه شود تا همین‌جا پخش شود.',
+    live: 'زنده',
+    min: 'دقیقه',
+  },
+};
 
 interface LiveCardProps {
   channel: Channel;
@@ -29,6 +90,7 @@ interface LiveCardProps {
 }
 
 const LiveCard: React.FC<LiveCardProps> = ({ channel, index, onPress }) => {
+  const { lang } = useTranslation();
   const enter = useRef(new Animated.Value(0)).current;
   const meta = groupMeta(channel.group);
 
@@ -46,16 +108,14 @@ const LiveCard: React.FC<LiveCardProps> = ({ channel, index, onPress }) => {
     <Animated.View
       style={{
         opacity: enter,
-        transform: [
-          { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [22, 0] }) },
-        ],
+        transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [22, 0] }) }],
       }}
     >
       <PressableScale onPress={onPress} style={styles.liveCard} accessibilityLabel={channel.name}>
         <View style={[styles.liveCardArt, { backgroundColor: meta.color + '1F' }]}>
           <ChannelLogo channel={channel} size={46} />
           <View style={[styles.liveTag, { backgroundColor: meta.color }]}>
-            <Text style={styles.liveTagText}>LIVE</Text>
+            <Text style={styles.liveTagText}>{COPY[lang].live}</Text>
           </View>
         </View>
         <View style={styles.liveCardBody}>
@@ -63,7 +123,7 @@ const LiveCard: React.FC<LiveCardProps> = ({ channel, index, onPress }) => {
             {channel.name}
           </Text>
           <Text style={styles.liveCardMeta} numberOfLines={1}>
-            {meta.label}
+            {groupLabel(channel.group, lang, meta.label)}
             {channel.quality ? ` · ${channel.quality}` : ''}
           </Text>
         </View>
@@ -79,6 +139,7 @@ interface MovieCardProps {
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({ movie, index, onPress }) => {
+  const { lang } = useTranslation();
   const enter = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -95,12 +156,14 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, index, onPress }) => {
     <Animated.View
       style={{
         opacity: enter,
-        transform: [
-          { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [22, 0] }) },
-        ],
+        transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [22, 0] }) }],
       }}
     >
-      <PressableScale onPress={onPress} style={styles.movieCard} accessibilityLabel={movie.title}>
+      <PressableScale
+        onPress={onPress}
+        style={styles.movieCard}
+        accessibilityLabel={movieTitle(movie.id, movie.title, lang)}
+      >
         <View style={[styles.poster, { backgroundColor: movie.color }]}>
           <View style={styles.posterSheen} />
           <Ionicons name={movie.icon as any} size={30} color="rgba(255,255,255,0.85)" />
@@ -110,10 +173,10 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, index, onPress }) => {
           </View>
         </View>
         <Text style={styles.movieTitle} numberOfLines={1}>
-          {movie.title}
+          {movieTitle(movie.id, movie.title, lang)}
         </Text>
         <Text style={styles.movieMeta} numberOfLines={1}>
-          {movie.genre} · {movie.year}
+          {genreLabel(movie.genre, lang)} · {movie.year}
         </Text>
       </PressableScale>
     </Animated.View>
@@ -156,6 +219,9 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 );
 
 const HomePage: React.FC<any> = ({ navigation }) => {
+  const { lang } = useTranslation();
+  const copy = COPY[lang];
+
   const [channels, setChannels] = useState<Channel[]>([]);
   const [isOffline, setIsOffline] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -210,24 +276,22 @@ const HomePage: React.FC<any> = ({ navigation }) => {
     const meta = groupMeta(channel.group);
     navigation.navigate('Player', {
       title: channel.name,
-      subtitle: `${meta.label} · Live`,
+      subtitle: `${groupLabel(channel.group, lang, meta.label)} · ${copy.live}`,
       url: channel.url,
       accent: meta.color,
       isLive: true,
-      hint: channel.url
-        ? 'The stream did not respond. Channels come and go during the day, so try another one from Live TV.'
-        : 'This entry comes from the built-in channel list, so no stream address is attached to it. Open Live TV and pull down to load the live playlist.',
+      hint: channel.url ? copy.channelHintFailed : copy.channelHintNoUrl,
     });
   };
 
   const openMovie = (movie: Movie) => {
     navigation.navigate('Player', {
-      title: movie.title,
-      subtitle: `${movie.genre} · ${movie.year} · ${movie.duration} min`,
+      title: movieTitle(movie.id, movie.title, lang),
+      subtitle: `${genreLabel(movie.genre, lang)} · ${movie.year} · ${movie.duration} ${copy.min}`,
       url: movie.streamUrl,
       accent: movie.color,
       isLive: false,
-      hint: 'This title belongs to the demo catalogue, so no source is attached to it yet. Add an M3U8 address to the film and it plays here.',
+      hint: copy.movieHint,
     });
   };
 
@@ -270,13 +334,13 @@ const HomePage: React.FC<any> = ({ navigation }) => {
             </View>
             <View>
               <Text style={styles.brandName}>Arshia TV</Text>
-              <Text style={styles.brandTag}>FREE LIVE TV · MOVIES</Text>
+              <Text style={styles.brandTag}>{copy.brandTag}</Text>
             </View>
           </View>
           <PressableScale
             onPress={() => navigation.navigate('More', { screen: 'Search' })}
             style={styles.iconButton}
-            accessibilityLabel="Search"
+            accessibilityLabel={copy.search}
           >
             <Ionicons name="search" size={19} color={AppTheme.colors.text} />
           </PressableScale>
@@ -289,7 +353,7 @@ const HomePage: React.FC<any> = ({ navigation }) => {
             }
             style={[styles.hero, { backgroundColor: heroChannelColor }]}
             activeScale={0.985}
-            accessibilityLabel="Featured broadcast"
+            accessibilityLabel={copy.watchNow}
           >
             <View style={styles.heroShade} />
             <View style={[styles.heroGlow, { backgroundColor: heroChannelColor }]} />
@@ -298,7 +362,7 @@ const HomePage: React.FC<any> = ({ navigation }) => {
               <View style={styles.heroBadge}>
                 <View style={styles.heroDot} />
                 <Text style={styles.heroBadgeText}>
-                  {featured ? 'ON AIR NOW' : 'FEATURED FILM'}
+                  {featured ? copy.onAirNow : copy.featuredFilm}
                 </Text>
               </View>
               {featured && featured.quality ? (
@@ -309,16 +373,22 @@ const HomePage: React.FC<any> = ({ navigation }) => {
             </View>
             <View>
               <Text style={styles.heroTitle} numberOfLines={2}>
-                {featured ? featured.name : featuredMovie.title}
+                {featured
+                  ? featured.name
+                  : movieTitle(featuredMovie.id, featuredMovie.title, lang)}
               </Text>
               <Text style={styles.heroMeta} numberOfLines={1}>
                 {featured
-                  ? `${groupMeta(featured.group).label} · live right now`
-                  : `${featuredMovie.genre} · ${featuredMovie.year} · ${featuredMovie.rating.toFixed(1)} rating`}
+                  ? `${groupLabel(featured.group, lang, groupMeta(featured.group).label)} · ${
+                      copy.liveRightNow
+                    }`
+                  : `${genreLabel(featuredMovie.genre, lang)} · ${featuredMovie.year} · ${featuredMovie.rating.toFixed(
+                      1
+                    )} ${copy.rating}`}
               </Text>
               <View style={styles.heroAction}>
                 <Ionicons name="play" size={14} color={AppTheme.colors.white} />
-                <Text style={styles.heroActionText}>Watch now</Text>
+                <Text style={styles.heroActionText}>{copy.watchNow}</Text>
               </View>
             </View>
           </PressableScale>
@@ -327,18 +397,15 @@ const HomePage: React.FC<any> = ({ navigation }) => {
         {isOffline ? (
           <Animated.View style={[styles.banner, rise(0.05, 18)]}>
             <Ionicons name="warning-outline" size={18} color={AppTheme.colors.warning} />
-            <Text style={styles.bannerText}>
-              The live playlist could not be reached, so the built-in channel list is shown.
-              Pull down to try again.
-            </Text>
+            <Text style={styles.bannerText}>{copy.offline}</Text>
           </Animated.View>
         ) : null}
 
         <Animated.View style={rise(0.12)}>
           <SectionHeader
             icon="radio-outline"
-            title="Live now"
-            hint={`${channels.length} free channels`}
+            title={copy.liveNow}
+            hint={`${channels.length} ${copy.freeChannels}`}
             color={AppTheme.colors.primary}
             isOpen={!closed.live}
             onToggle={() => toggleSection('live')}
@@ -349,7 +416,7 @@ const HomePage: React.FC<any> = ({ navigation }) => {
           loading && channels.length === 0 ? (
             <View style={styles.loadingRow}>
               <ActivityIndicator color={AppTheme.colors.primary} />
-              <Text style={styles.loadingText}>Loading live channels…</Text>
+              <Text style={styles.loadingText}>{copy.loading}</Text>
             </View>
           ) : (
             <ScrollView
@@ -373,8 +440,8 @@ const HomePage: React.FC<any> = ({ navigation }) => {
         <Animated.View style={rise(0.24)}>
           <SectionHeader
             icon="film-outline"
-            title="Movies"
-            hint="Popular on Arshia TV"
+            title={copy.movies}
+            hint={copy.popular}
             color={AppTheme.colors.accent}
             isOpen={!closed.movies}
             onToggle={() => toggleSection('movies')}
@@ -402,8 +469,8 @@ const HomePage: React.FC<any> = ({ navigation }) => {
         <Animated.View style={rise(0.36)}>
           <SectionHeader
             icon="grid-outline"
-            title="Browse by category"
-            hint="Collapsible channel shelves"
+            title={copy.browse}
+            hint={copy.shelves}
             color={AppTheme.colors.info}
             isOpen={!closed.groups}
             onToggle={() => toggleSection('groups')}
@@ -425,10 +492,12 @@ const HomePage: React.FC<any> = ({ navigation }) => {
                   styles.groupChip,
                   { backgroundColor: meta.color + '1F', borderColor: meta.color + '59' },
                 ]}
-                accessibilityLabel={meta.label}
+                accessibilityLabel={groupLabel(meta.key, lang, meta.label)}
               >
                 <Ionicons name={meta.icon as any} size={15} color={meta.color} />
-                <Text style={styles.groupChipText}>{meta.label}</Text>
+                <Text style={styles.groupChipText}>
+                  {groupLabel(meta.key, lang, meta.label)}
+                </Text>
               </PressableScale>
             ))}
           </ScrollView>
@@ -436,10 +505,7 @@ const HomePage: React.FC<any> = ({ navigation }) => {
 
         <Animated.View style={[styles.footer, rise(0.48, 16)]}>
           <ArshiaWatermark size={12} />
-          <Text style={styles.footerText}>
-            Arshia TV indexes free-to-air Iranian and international channels. Every broadcast
-            and film carries the Arshia TV mark.
-          </Text>
+          <Text style={styles.footerText}>{copy.footer}</Text>
         </Animated.View>
       </ScrollView>
     </SafeAreaView>
@@ -653,4 +719,130 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: AppTheme.spacing.lg,
-    paddingVertical: AppTheme.sp,
+    paddingVertical: AppTheme.spacing.lg,
+  },
+  loadingText: {
+    color: AppTheme.colors.textSecondary,
+    fontSize: AppTheme.typography.fontSize.sm,
+    marginLeft: AppTheme.spacing.sm,
+  },
+  liveCard: {
+    width: 138,
+    marginRight: AppTheme.spacing.md,
+    borderRadius: AppTheme.borderRadius.lg,
+    backgroundColor: AppTheme.colors.card,
+    borderWidth: 1,
+    borderColor: AppTheme.colors.border,
+    overflow: 'hidden',
+  },
+  liveCardArt: {
+    height: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  liveTag: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: AppTheme.borderRadius.xs,
+  },
+  liveTagText: {
+    color: AppTheme.colors.white,
+    fontSize: 8,
+    letterSpacing: 0.8,
+    fontWeight: AppTheme.typography.fontWeight.extrabold,
+  },
+  liveCardBody: {
+    padding: AppTheme.spacing.sm,
+  },
+  liveCardName: {
+    color: AppTheme.colors.text,
+    fontSize: AppTheme.typography.fontSize.sm,
+    fontWeight: AppTheme.typography.fontWeight.semibold,
+  },
+  liveCardMeta: {
+    color: AppTheme.colors.textMuted,
+    fontSize: 10,
+    marginTop: 3,
+  },
+  movieCard: {
+    width: 128,
+    marginRight: AppTheme.spacing.md,
+  },
+  poster: {
+    height: 170,
+    borderRadius: AppTheme.borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    ...AppTheme.elevation.md,
+  },
+  posterSheen: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    top: -60,
+    right: -50,
+  },
+  ratingBadge: {
+    position: 'absolute',
+    left: 8,
+    bottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: AppTheme.borderRadius.sm,
+    backgroundColor: 'rgba(6,9,16,0.6)',
+  },
+  ratingText: {
+    color: AppTheme.colors.white,
+    fontSize: 10,
+    fontWeight: AppTheme.typography.fontWeight.bold,
+    marginLeft: 3,
+  },
+  movieTitle: {
+    color: AppTheme.colors.text,
+    fontSize: AppTheme.typography.fontSize.sm,
+    fontWeight: AppTheme.typography.fontWeight.semibold,
+    marginTop: AppTheme.spacing.sm,
+  },
+  movieMeta: {
+    color: AppTheme.colors.textMuted,
+    fontSize: 10,
+    marginTop: 2,
+  },
+  groupChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 38,
+    paddingHorizontal: 14,
+    borderRadius: AppTheme.borderRadius.full,
+    borderWidth: 1,
+    marginRight: AppTheme.spacing.sm,
+  },
+  groupChipText: {
+    color: AppTheme.colors.text,
+    fontSize: AppTheme.typography.fontSize.sm,
+    fontWeight: AppTheme.typography.fontWeight.semibold,
+    marginLeft: 6,
+  },
+  footer: {
+    alignItems: 'center',
+    marginTop: AppTheme.spacing.xl,
+    paddingHorizontal: AppTheme.spacing.xl,
+  },
+  footerText: {
+    color: AppTheme.colors.textMuted,
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
+    marginTop: AppTheme.spacing.sm,
+  },
+});
+
+export default HomePage;
